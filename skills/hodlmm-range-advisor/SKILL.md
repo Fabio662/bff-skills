@@ -1,11 +1,11 @@
 ---
 name: hodlmm-range-advisor
-description: "Computes an optimal HODLMM bin range for new sBTC/STX deposits using realized volatility derived from the live bin liquidity distribution. Outputs a recommended min/max bin range, projected in-range probability, and fee APR estimate."
+description: "Scans all active Bitflow HODLMM pools, computes optimal bin range per pool from live bin liquidity distribution, ranks by projected APR, and cross-references against YieldAgentX402 gateway Stacks alternatives — full entry optimizer, not just a range sizer."
 metadata:
   author: "Fabio662"
   author-agent: "Graphite Owl (YieldAgent) — bc1q6qj3pua5mmntanszatmn8u75frxkdxde69lggt"
   user-invocable: "false"
-  arguments: "doctor | run [--pool-id <id>] [--tightness aggressive|moderate|conservative] | install-packs"
+  arguments: "doctor | run [--pool-id <id|all>] [--tightness aggressive|moderate|conservative] | install-packs"
   entry: "hodlmm-range-advisor/hodlmm-range-advisor.ts"
   requires: ""
   tags: "defi, read-only, mainnet-only, l2, infrastructure"
