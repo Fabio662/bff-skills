@@ -1,3 +1,9 @@
+---
+name: bitcoin-yield-signal-agent
+skill: bitcoin-yield-signal
+description: "Autonomous yield signal correspondent that fetches live JingSwap spread data and optionally files structured signals to the aibtc.news bitcoin-yield beat."
+---
+
 # Agent Behavior — Bitcoin Yield Signal
 
 ## Decision order

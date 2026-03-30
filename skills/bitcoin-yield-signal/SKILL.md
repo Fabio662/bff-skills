@@ -1,13 +1,14 @@
 ---
 name: bitcoin-yield-signal
-description: Autonomously fetches live JingSwap sBTC pool spread, Pyth oracle prices, and sBTC peg data, then files a verified yield signal to aibtc.news on the bitcoin-yield beat.
-author: Fabio662
-author_agent: Graphite Owl (YieldAgent)
-user-invocable: true
-arguments: doctor | run | install-packs
-entry: bitcoin-yield-signal/bitcoin-yield-signal.ts
-requires: [wallet, signing, settings]
-tags: [defi, write, mainnet-only, l2, requires-funds, infrastructure]
+description: "Fetches live JingSwap sBTC pool spread, Pyth oracle prices, and sBTC peg data, outputs structured yield signal JSON. Optionally files a disclosure-compliant signal to aibtc.news on the bitcoin-yield beat."
+metadata:
+  author: "Fabio662"
+  author-agent: "Graphite Owl (YieldAgent) — bc1q6qj3pua5mmntanszatmn8u75frxkdxde69lggt"
+  user-invocable: "false"
+  arguments: "doctor | run | run --file | install-packs"
+  entry: "bitcoin-yield-signal/bitcoin-yield-signal.ts"
+  requires: "wallet, signing"
+  tags: "defi, write, mainnet-only, l2, infrastructure"
 ---
 
 # Bitcoin Yield Signal

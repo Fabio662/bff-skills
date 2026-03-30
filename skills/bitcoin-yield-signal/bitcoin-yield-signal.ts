@@ -86,11 +86,7 @@ async function doctor() {
 async function run() {
   if (!BTC_ADDRESS) fail("NO_WALLET", "AIBTC_BTC_ADDRESS not set", "Run: npx @aibtc/mcp-server@latest --install");
 
-  let status: any;
-  try { status = await getStatus(); } catch(e) { fail("STATUS_FAIL", String(e), "re-run doctor"); }
-  if (!status.can) blocked(status.wait ? `Cooldown — wait ${status.wait}min` : `Beat not claimed — claim bitcoin-yield at aibtc.news first`, { waitMinutes: status.wait, signalsToday: status.today });
-  if (status.today >= MAX_SIGNALS) blocked(`Daily limit: ${status.today}/${MAX_SIGNALS}`, { signalsToday: status.today });
-
+  // Data fetch always runs — no beat required for structured output
   let p: any, peg: any, block: number;
   try { [p, peg, block] = await Promise.all([getPrices(), getPeg(), getBlock()]); }
   catch(e) { fail("FETCH_FAIL", String(e), "re-run doctor"); }
@@ -99,6 +95,19 @@ async function run() {
   const xykUsd = Math.round(p.xykRate * p.stxUsd);
   const dlmmUsd = Math.round(p.dlmmRate * p.stxUsd);
   const spreadUsd = dlmmUsd - xykUsd;
+  const metrics = { spreadPct: +spreadPct.toFixed(2), xykRate: p.xykRate, dlmmRate: p.dlmmRate, impliedXykUsd: xykUsd, impliedDlmmUsd: dlmmUsd, spreadUsd, pythBtcUsd: p.btcUsd, pythStxUsd: p.stxUsd, sbtcSupplyBtc: peg.supplyBtc, pegRatio: peg.ratio, blockHeight: block, pythTimestamp: p.pythTs };
+
+  // Without --file: return structured JSON — composable, no beat needed
+  if (!process.argv.includes("--file")) {
+    out({ status: "success", action: "Signal data ready. Re-run with --file to post to aibtc.news beat.", data: metrics, error: null });
+  }
+
+  // --file path: check beat status, then post
+  if (!AIBTC_API_KEY) fail("NO_KEY", "AIBTC_API_KEY not set", "set env var from @aibtc/mcp-server");
+  let status: any;
+  try { status = await getStatus(); } catch(e) { fail("STATUS_FAIL", String(e), "re-run doctor"); }
+  if (!status.can) blocked(status.wait ? `Cooldown — wait ${status.wait}min` : `Beat not claimed — claim bitcoin-yield at aibtc.news first`, { waitMinutes: status.wait, signalsToday: status.today });
+  if (status.today >= MAX_SIGNALS) blocked(`Daily limit: ${status.today}/${MAX_SIGNALS}`, { signalsToday: status.today });
 
   const headline = `JingSwap sBTC/STX DLMM Prices Bitcoin ${spreadPct.toFixed(2)}% Above XYK Pool at Stacks Block ${block.toLocaleString()}`;
   const body = `JingSwap's two sBTC/STX markets on Stacks mainnet show a ${spreadPct.toFixed(2)}% price spread as of Stacks block ${block.toLocaleString()} (Pyth publish time ${p.pythTs}): the XYK pool trades at ${p.xykRate.toLocaleString()} STX per BTC while the DLMM pool shows ${p.dlmmRate.toLocaleString()} STX per BTC. At Pyth's live STX/USD feed of $${p.stxUsd.toFixed(4)}, those imply sBTC at $${xykUsd.toLocaleString()} (XYK) and $${dlmmUsd.toLocaleString()} (DLMM) respectively, against Pyth's BTC/USD oracle at $${p.btcUsd.toLocaleString()}. The XYK pool holds ${(p.sbtcReserve/1e8).toFixed(2)} sBTC against ${Math.round(p.stxReserve/1e6).toLocaleString()}M STX in reserve. The $${spreadUsd.toLocaleString()}-per-BTC DLMM premium is a cross-pool routing signal correspondents on the bitcoin-yield beat should track. sBTC circulating supply: ${peg.supplyBtc.toLocaleString()} BTC, ${peg.ratio} peg confirmed.`;
@@ -108,13 +117,6 @@ async function run() {
     { url: `https://explorer.hiro.so/block/stacks:${block}?chain=mainnet`, title: `Stacks block ${block.toLocaleString()} — Hiro Explorer` },
   ];
 
-  const metrics = { spreadPct: +spreadPct.toFixed(2), xykRate: p.xykRate, dlmmRate: p.dlmmRate, pythBtcUsd: p.btcUsd, pythStxUsd: p.stxUsd, sbtcSupplyBtc: peg.supplyBtc, blockHeight: block, pythTimestamp: p.pythTs };
-
-  if (!process.argv.includes("--confirm")) {
-    out({ status: "blocked", action: "Review draft and re-run with --confirm to file", data: { draft: { headline, body: body.slice(0, 120) + "...", sources, disclosure: DISCLOSURE }, metrics, confirmRequired: true }, error: null });
-  }
-
-  if (!AIBTC_API_KEY) fail("NO_KEY", "AIBTC_API_KEY not set", "set env var from @aibtc/mcp-server");
   const res = await fetch(`${NEWS_BASE}/api/signals`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${AIBTC_API_KEY}` },
