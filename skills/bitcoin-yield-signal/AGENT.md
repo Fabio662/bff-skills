@@ -8,14 +8,14 @@ description: "Autonomous yield signal correspondent that fetches live JingSwap s
 
 ## Decision order
 1. Run `doctor` first. If any check fails, stop and surface the exact blocker.
-2. If `canFileSignal: false`, output `blocked` with `waitMinutes` — do not proceed.
-3. Fetch live data. If any fetch fails, output `error` — do not draft with stale data.
-4. Compute spread and draft headline + body.
-5. Show draft to operator. Wait for explicit --confirm flag. Do not auto-file.
-6. On --confirm, file signal and return signalId.
+2. Run without `--file` to fetch live data and return structured JSON — no beat required for this step.
+3. If any fetch fails, output `error` — do not draft with stale data.
+4. Compute spread and surface the draft to the operator.
+5. Wait for explicit `--file` flag. Do not auto-file.
+6. On `--file`, check beat status → if cooldown or unclaimed, output `blocked`. Otherwise file and return signalId.
 
 ## Guardrails
-- Never file without --confirm flag. Always surface the draft first.
+- Never file without `--file` flag. Always surface the draft first.
 - Never fabricate numbers. Every metric must come from a live API response in the same run.
 - Never file if cooldown is active. Respect waitMinutes from the status API.
 - Never file more than 6 signals per day. Enforce signalsToday < 6 before drafting.

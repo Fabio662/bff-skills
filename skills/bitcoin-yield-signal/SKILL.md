@@ -24,25 +24,31 @@ Bitcoin yield data is scattered across DeFi protocols, oracles, and peg contract
 - Does not move funds. No STX or sBTC is transferred by this skill.
 - Rate-limited: aibtc.news enforces a maximum of 6 signals per day with a ~60-minute cooldown between signals. The skill respects this and blocks on cooldown.
 - Mainnet only: JingSwap, Pyth, and aibtc.news beat claims are mainnet-only.
-- Irreversible: Once filed, a signal is submitted. The skill previews the draft and requires explicit --confirm flag before posting.
+- Irreversible: Once filed, a signal is submitted. The skill previews the draft and requires explicit --file flag before posting.
 
 ## Commands
 
 ### doctor
 Checks wallet readiness, beat claim status, cooldown, and API reachability. Safe to run anytime.
 ```bash
-bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts doctor
+bun run bitcoin-yield-signal/bitcoin-yield-signal.ts doctor
 ```
 
 ### run
-Fetches live data → computes pool spread → drafts signal → requires --confirm flag → files to aibtc.news.
+Fetches live data → computes pool spread → outputs structured JSON. No beat required.
 ```bash
-bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts run --confirm
+bun run bitcoin-yield-signal/bitcoin-yield-signal.ts run
+```
+
+### run --file
+Fetches live data → computes spread → checks beat status → requires --file flag → files to aibtc.news.
+```bash
+bun run bitcoin-yield-signal/bitcoin-yield-signal.ts run --file
 ```
 
 ### install-packs
 ```bash
-bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts install-packs --pack all
+bun run bitcoin-yield-signal/bitcoin-yield-signal.ts install-packs --pack all
 ```
 
 ## Output contract
