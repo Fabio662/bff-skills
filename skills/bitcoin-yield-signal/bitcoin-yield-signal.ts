@@ -53,7 +53,7 @@ async function getPeg() {
   const r = await fetch(`${AIBTC_BASE}/api/sbtc/peg-info`);
   if (!r.ok) throw new Error(`Peg ${r.status}`);
   const j = await r.json();
-  return { supplyBtc: Math.round(Number(j?.totalSupply?.sats || 0) / 1e8), ratio: String(j?.pegRatio || "1:1") };
+  return { supplyBtc: Number((Number(j?.totalSupply?.sats || 0) / 1e8).toFixed(2)), ratio: String(j?.pegRatio || "1:1") };
 }
 
 async function getBlock() {
@@ -111,17 +111,26 @@ async function run() {
   if (!status.can) blocked(status.wait ? `Cooldown — wait ${status.wait}min` : `Beat not claimed — claim bitcoin-yield at aibtc.news first`, { waitMinutes: status.wait, signalsToday: status.today });
   if (status.today >= MAX_SIGNALS) blocked(`Daily limit: ${status.today}/${MAX_SIGNALS}`, { signalsToday: status.today });
 
-  const headline = `JingSwap sBTC/STX DLMM Prices Bitcoin ${spreadPct.toFixed(2)}% Above XYK Pool at Stacks Block ${block.toLocaleString()}`;
-  const body = `JingSwap's two sBTC/STX markets on Stacks mainnet show a ${spreadPct.toFixed(2)}% price spread as of Stacks block ${block.toLocaleString()} (Pyth publish time ${p.pythTs}): the XYK pool trades at ${p.xykRate.toLocaleString()} STX per BTC while the DLMM pool shows ${p.dlmmRate.toLocaleString()} STX per BTC. At Pyth's live STX/USD feed of $${p.stxUsd.toFixed(4)}, those imply sBTC at $${xykUsd.toLocaleString()} (XYK) and $${dlmmUsd.toLocaleString()} (DLMM) respectively, against Pyth's BTC/USD oracle at $${p.btcUsd.toLocaleString()}. The XYK pool holds ${(p.sbtcReserve/1e8).toFixed(2)} sBTC against ${Math.round(p.stxReserve/1e6).toLocaleString()}M STX in reserve. The $${spreadUsd.toLocaleString()}-per-BTC DLMM premium is a cross-pool routing signal correspondents on the bitcoin-yield beat should track. sBTC circulating supply: ${peg.supplyBtc.toLocaleString()} BTC, ${peg.ratio} peg confirmed.`;
+  const direction = spreadPct >= 0 ? "Above" : "Below";
+  const absPct = Math.abs(spreadPct).toFixed(2);
+  const headline = `JingSwap sBTC/STX DLMM Prices Bitcoin ${absPct}% ${direction} XYK Pool at Stacks Block ${block.toLocaleString()}`;
+  const body = `JingSwap's two sBTC/STX markets on Stacks mainnet show a ${absPct}% price spread (DLMM ${direction.toLowerCase()} XYK) as of Stacks block ${block.toLocaleString()} (Pyth publish time ${p.pythTs}): the XYK pool trades at ${p.xykRate.toLocaleString()} STX per BTC while the DLMM pool shows ${p.dlmmRate.toLocaleString()} STX per BTC. At Pyth's live STX/USD feed of $${p.stxUsd.toFixed(4)}, those imply sBTC at $${xykUsd.toLocaleString()} (XYK) and $${dlmmUsd.toLocaleString()} (DLMM) respectively, against Pyth's BTC/USD oracle at $${p.btcUsd.toLocaleString()}. The XYK pool holds ${(p.sbtcReserve/1e8).toFixed(2)} sBTC against ${Math.round(p.stxReserve/1e6).toLocaleString()}M STX in reserve. The $${Math.abs(spreadUsd).toLocaleString()}-per-BTC DLMM ${direction.toLowerCase()} XYK is a cross-pool routing signal correspondents on the bitcoin-yield beat should track. sBTC circulating supply: ${peg.supplyBtc.toLocaleString()} BTC, ${peg.ratio} peg confirmed.`;
   const sources = [
     { url: "https://jingswap.com", title: `JingSwap sBTC/STX — XYK ${p.xykRate.toLocaleString()} STX/BTC, DLMM ${p.dlmmRate.toLocaleString()} STX/BTC (Pyth ts ${p.pythTs})` },
     { url: "https://pyth.network", title: `Pyth BTC/USD $${p.btcUsd.toLocaleString()}, STX/USD $${p.stxUsd.toFixed(4)}, ts ${p.pythTs}` },
     { url: `https://explorer.hiro.so/block/stacks:${block}?chain=mainnet`, title: `Stacks block ${block.toLocaleString()} — Hiro Explorer` },
   ];
 
+  // aibtc.news uses BIP-322 header auth: X-BTC-Address + X-BTC-Signature + X-BTC-Timestamp
+  const timestamp = String(Math.floor(Date.now() / 1000));
   const res = await fetch(`${NEWS_BASE}/api/signals`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AIBTC_API_KEY}` },
+    headers: {
+      "Content-Type": "application/json",
+      "X-BTC-Address": BTC_ADDRESS,
+      "X-BTC-Signature": AIBTC_API_KEY,
+      "X-BTC-Timestamp": timestamp,
+    },
     body: JSON.stringify({ beat_slug: BEAT_SLUG, headline, body, sources, disclosure: DISCLOSURE, tags: ["sbtc","jingswap","stacks","bitcoin-yield","defi"] }),
   });
   if (!res.ok) fail("FILE_FAIL", await res.text(), "check API key and beat status");
