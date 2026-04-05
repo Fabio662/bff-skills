@@ -31,24 +31,24 @@ Bitcoin yield data is scattered across DeFi protocols, oracles, and peg contract
 ### doctor
 Checks wallet readiness, beat claim status, cooldown, and API reachability. Safe to run anytime.
 ```bash
-bun run bitcoin-yield-signal/bitcoin-yield-signal.ts doctor
+bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts doctor
 ```
 
 ### run
 Fetches live data → computes pool spread → outputs structured JSON. No beat required.
 ```bash
-bun run bitcoin-yield-signal/bitcoin-yield-signal.ts run
+bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts run
 ```
 
 ### run --file
 Fetches live data → computes spread → checks beat status → requires --file flag → files to aibtc.news.
 ```bash
-bun run bitcoin-yield-signal/bitcoin-yield-signal.ts run --file
+bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts run --file
 ```
 
 ### install-packs
 ```bash
-bun run bitcoin-yield-signal/bitcoin-yield-signal.ts install-packs --pack all
+bun run skills/bitcoin-yield-signal/bitcoin-yield-signal.ts install-packs --pack all
 ```
 
 ## Output contract
