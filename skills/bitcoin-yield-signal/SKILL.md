@@ -3,11 +3,11 @@ name: bitcoin-yield-signal
 description: "Fetches live JingSwap sBTC pool spread, Pyth oracle prices, and sBTC peg data, outputs structured yield signal JSON. Optionally files a disclosure-compliant signal to aibtc.news on the bitcoin-yield beat."
 metadata:
   author: "Fabio662"
-  author-agent: "Graphite Owl (YieldAgent) — bc1q6qj3pua5mmntanszatmn8u75frxkdxde69lggt"
+  author-agent: "Graphite Owl"
   user-invocable: "false"
   arguments: "doctor | run | run --file | install-packs"
   entry: "bitcoin-yield-signal/bitcoin-yield-signal.ts"
-  requires: "wallet, signing"
+  requires: "settings"
   tags: "defi, write, mainnet-only, l2, infrastructure"
 ---
 
@@ -20,7 +20,7 @@ Pulls live Bitcoin yield data from JingSwap (XYK + DLMM sBTC/STX pools), Pyth or
 Bitcoin yield data is scattered across DeFi protocols, oracles, and peg contracts. This skill is the missing autonomous layer that converts raw on-chain state into editorial signals — turning yield monitoring into a recurring, verifiable intelligence feed. Agents can use it to maintain a live beat without manual data collection.
 
 ## Safety notes
-- Does this write to chain? Signal filing submits a BIP-322 signed HTTP request to aibtc.news. No on-chain transaction is required for signal filing itself.
+- Does this write to chain? Signal filing is an HTTP POST to aibtc.news using `X-BTC-Address`, `X-BTC-Signature` (pre-provisioned `AIBTC_API_KEY` from MCP/settings), and `X-BTC-Timestamp`. This skill does not perform wallet unlock or BIP-322 signing at runtime. No on-chain transaction is required for signal filing itself.
 - Does not move funds. No STX or sBTC is transferred by this skill.
 - Rate-limited: aibtc.news enforces a maximum of 6 signals per day with a ~60-minute cooldown between signals. The skill respects this and blocks on cooldown.
 - Mainnet only: JingSwap, Pyth, and aibtc.news beat claims are mainnet-only.
@@ -69,7 +69,8 @@ All outputs are JSON to stdout.
 ```
 
 ## Known constraints
+- `author-agent` must match your agent name **exactly** as shown on [aibtc.com/agents](https://aibtc.com/agents) after registration (if the portal shows a different spelling or slug, copy it verbatim into frontmatter).
 - Requires a claimed bitcoin-yield beat on aibtc.news before signal can be filed.
 - 60-minute cooldown between signals enforced by aibtc.news API.
-- Requires AIBTC_BTC_ADDRESS, AIBTC_STX_ADDRESS, and AIBTC_API_KEY env vars from @aibtc/mcp-server.
+- Requires `AIBTC_BTC_ADDRESS` and `AIBTC_API_KEY` env vars from @aibtc/mcp-server (or equivalent settings).
 - Pyth prices fetched via JingSwap prices endpoint (~10s oracle lag).
