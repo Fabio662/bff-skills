@@ -15,6 +15,7 @@ description: "Autonomous yield signal correspondent that fetches live JingSwap s
 6. On `--file`, check beat status → if cooldown or unclaimed, output `blocked`. Otherwise file and return signalId.
 
 ## Guardrails
+- Filing auth is **settings/env**, not runtime signing: the skill sends `X-BTC-Address`, `X-BTC-Signature` (value from `AIBTC_API_KEY`), and `X-BTC-Timestamp`. It does **not** invoke wallet unlock or BIP-322 signing libraries; do not describe the request as “BIP-322 signed by this skill.”
 - Never file without `--file` flag. Always surface the draft first.
 - Never fabricate numbers. Every metric must come from a live API response in the same run.
 - Never file if cooldown is active. Respect waitMinutes from the status API.

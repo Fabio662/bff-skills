@@ -4,7 +4,7 @@
  * Commands: doctor | run [--file] | install-packs
  * Output: strict JSON to stdout
  * Author: Graphite Owl — bc1q6qj3pua5mmntanszatmn8u75frxkdxde69lggt
- * On-chain proof: signal df326182-2396-49b0-a54e-74bfea93dd8e (2026-03-26T04:44Z) — re-file with run --file for fresh proof
+ * Proof (per-skill): filed signal df326182-2396-49b0-a54e-74bfea93dd8e — https://aibtc.news/api/signals/df326182-2396-49b0-a54e-74bfea93dd8e
  */
 
 import { Command } from "commander";
