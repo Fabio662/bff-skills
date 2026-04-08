@@ -28,6 +28,12 @@ Bitcoin yield data is scattered across DeFi protocols, oracles, and peg contract
 
 ## Commands
 
+One-time dependency install (Commander.js), from repo root:
+
+```bash
+cd skills/bitcoin-yield-signal && bun install && cd ../..
+```
+
 ### doctor
 Checks wallet readiness, beat claim status, cooldown, and API reachability. Safe to run anytime.
 ```bash
